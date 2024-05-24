@@ -4,6 +4,7 @@ class CreateProducts < ActiveRecord::Migration[7.1]
       t.string :title
       t.string :price
       t.string :sku
+      t.string :product_url
       t.timestamps
     end
   end
