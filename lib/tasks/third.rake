@@ -1,47 +1,45 @@
 require 'watir'
-require 'json'
+# require 'json'
 
 task :third => :environment do
 
-  options = [ '--disable-infobars', '--disable-extensions', '--disable-gpu','--no-sandbox', '--disable-dev-shm-usage', '--disable-blink-features=AutomationControlled', '--disable-images','--disable-css']
+  options = [ '--disable-infobars', '--disable-extensions', '--disable-gpu','--no-sandbox','--disable-dev-shm-usage', '--disable-blink-features=AutomationControlled', '--disable-images','--disable-css']
 
   browser = Watir::Browser.new :chrome, options: { args: options }
   raise Exception.new "Browser error" if !browser.present?
 
   base_url = "https://www.thejewelryvine.com"
   last_page_url = "https://www.thejewelryvine.com/product-category/childrens-jewelry-collections/disney-childrens-jewelry/"
-  last_url_record = nil
+  last_url_record = ""
   pages_array = []
-  cleaned_last_url = nil
+  cleaned_last_url = ""
+  sub_category = ""
   attempts = 0
 
   begin
-    
     if LastPageUrl.any?
-      if !LastPageUrl.last.url.nil?
-        if LastPageUrl.last&.url.include?('/page/')
-          url_data = LastPageUrl.last&.url.split('/page/')
-          cleaned_last_url = url_data.first
-        else
-          cleaned_last_url = LastPageUrl.last&.url
-        end
-        if cleaned_last_url == last_page_url
-          LastPageUrl.delete_all
-        end
+      last_url = LastPageUrl.last&.url
+      if last_url&.include?('/page/')
+        url_data = LastPageUrl.last&.url.split('page/')
+        cleaned_last_url = url_data.first
+      else
+        cleaned_last_url = LastPageUrl.last&.url
+      end
+      if cleaned_last_url == last_page_url
+        LastPageUrl.delete_all
       end
     end
-  
     browser.goto "#{base_url}"
     pages = browser.elements(xpath: "//li[contains(@class, 'menu-item') and contains(@class, 'menu-item-type-taxonomy') and contains(@class, 'menu-item-object-product_cat') and not(contains(@class, 'menu-item-design-default')) and not(contains(@class, 'has-dropdown')) and not(contains(@class, 'nav-dropdown-col'))]")
     
     pages.each do |page|
       page_url = page.a.href
       pages_array << page_url
-      if page_url ==  cleaned_last_url
+      if page_url == cleaned_last_url
         last_url_record = page_url
       end
     end
-  
+
     start_url = last_url_record.present? ? last_url_record : pages_array.first
     start_index = pages_array.index(start_url)
 
@@ -50,48 +48,61 @@ task :third => :environment do
       start_index = 0
     end
 
-    pages_to_process = pages_array[start_index..-1]
+    category_pages = pages_array[start_index..-1]
 
-    pages_to_process.each do |page|
+    category_pages.each do |page|
+      category_data = page.split('.com')[1]
+      category_data_second = category_data.split('/')
+      if category_data_second[3]
+
+        category = Category.find_or_create_by(title: category_data_second[2])
+        sub_category = category.sub_categories.find_or_create_by(title: category_data_second[3])
+      else
+        sub_category = SubCategory.find_or_create_by(title: category_data_second[2])
+      end
       last_page_number = 1
       if LastPageUrl.any?
-        if !LastPageUrl.last.url.nil?
-          if LastPageUrl.last&.url.include?('/page/')
-            last_page_number = url_data.second.to_i
-            LastPageUrl.delete_all
-          end
+        last_url = LastPageUrl.last&.url
+        if last_url&.include?('/page/')
+          last_page_number = url_data.second.to_i
+          browser.goto last_url
+          LastPageUrl.delete_all
+        else
+          browser.goto page
         end
+      else
+        browser.goto page
       end
-
-      browser.goto page
+      
       products_pagination =  browser.element(xpath: "/html/body/div[2]/main/div/div[1]/div/nav/ul")
       products = browser.elements(xpath: "//*[contains(@class, 'name') and contains(@class, 'product-title') and contains(@class, 'woocommerce-loop-product__title')]")
       if products_pagination.lis.present?
         second_last_li = products_pagination.lis[-2]
         a_tag = second_last_li.a
-        products_page_count = a_tag.text.to_i
-        (last_page_number..products_page_count).each do |page_number|
-          url = "#{page}/page/#{page_number}"
-          last_url_record = url
-          puts "==================#{url}================"
+        products_page_count = a_tag.text.to_i+1
+        (last_page_number...products_page_count).each do |page_number|
+            last_url_record = "#{page}page/#{page_number}"
+          puts "==================#{last_url_record}================"
           puts "=================================="
-          # get_product(products)
-          # browser_4 = Watir::Browser.new :chrome, options: { args: options }
-          # raise Exception.new "Browser error" if !browser_4.present?
-          # products.each do |product|
-          #   browser_4.goto product.a.href
-          #   # product_title = browser_4.element(xpath: "/html/body/div[2]/main/div/div[2]/div[1]/div/div/div[2]/h1").text
-          #   # product_price = browser_4.element(xpath: "/html/body/div[2]/main/div/div[2]/div[1]/div/div/div[2]/div[4]/p/span/bdi").text
-          #   # product_sku = browser_4.element(xpath: "/html/body/div[2]/main/div/div[2]/div[1]/div/div/div[2]/div[6]/span[1]/span").text
-          #   # puts "==============================prodcut details========================"
-          #   # puts " =================#{product_title}==========#{product_price}=============#{product_sku}"
-          #   # puts "==============================end ==================================="
-          #   # Product.create!(product_url: prodcut.a.href )
-          # end
-          # browser_4.close 
-          # puts "=================================="
-          # puts "================== page end ============"
-          browser.goto(url)
+          browser_4 = Watir::Browser.new :chrome, options: { args: options }
+          raise Exception.new "Browser error" if !browser_4.present?
+          products.each do |product|
+            browser_4.goto product.a.href
+            next if !browser_4.element(xpath: "//h1[contains(@class, 'product-title') and contains(@class, 'product_title') and contains(@class, 'entry-title')]").present?
+            product_title = browser_4.element(xpath: "//h1[contains(@class, 'product-title') and contains(@class, 'product_title') and contains(@class, 'entry-title')]").text
+            
+            product_price = browser_4.input(xpath: "//input[@type='hidden' and contains(@class, 'product-options-product-price')]").value
+            product_sku = browser_4.element(xpath: "//span[contains(@class, 'sku_wrapper')]").span.text
+            existing_product = sub_category.products.find_by(sku: product_sku)
+            next if existing_product 
+            sub_category.products.create(title: product_title, price: product_price, sku: product_sku, product_url: product.a.href)
+            puts " =================#{product_title}==========#{product_price}=============#{product_sku}"
+          end
+          browser_4.close 
+          puts "=================================="
+          puts "================== page end ============"
+          next_url = "#{page}page/#{page_number+1}"
+          browser.goto(next_url)
         end
       end
       break if page == last_page_url
@@ -107,27 +118,3 @@ task :third => :environment do
   puts "=============script end==================="
   browser.close
 end
-
-# def get_product(products)
-#   debugger
-#   options = ['--disable-infobars','--disable-extensions','--disable-gpu','--headless',
-#   '--no-sandbox','--disable-dev-shm-usage','--disable-blink-features=AutomationControlled',
-#   '--disable-images','--disable-css']
-
-#   browser_4 = Watir::Browser.new :chrome, options: { args: options }
-#   raise Exception.new "Browser error" if !browser_4.present?
-#   products.each do |product|
-#       # puts product.a.href
-#     # if attempt < 3
-#       browser_4.goto product.a.href
-#       # product_title = browser_4.element(xpath: "/html/body/div[2]/main/div/div[2]/div[1]/div/div/div[2]/h1").text
-#       # product_price = browser_4.element(xpath: "/html/body/div[2]/main/div/div[2]/div[1]/div/div/div[2]/div[4]/p/span/bdi").text
-#       # product_sku = browser_4.element(xpath: "/html/body/div[2]/main/div/div[2]/div[1]/div/div/div[2]/div[6]/span[1]/span").text
-#       # puts "==============================prodcut details========================"
-#       # puts " =================#{product_title}==========#{product_price}=============#{product_sku}"
-#       # puts "==============================end ==================================="
-#       # attempt +=1
-#     # end
-#       browser_4.close 
-#   end
-# end
