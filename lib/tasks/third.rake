@@ -3,7 +3,7 @@ require 'watir'
 
 task :third => :environment do
 
-  options = [ '--disable-infobars', '--disable-extensions', '--disable-gpu','--no-sandbox','--disable-dev-shm-usage', '--disable-blink-features=AutomationControlled', '--disable-images','--disable-css']
+  options = [ '--disable-infobars', '--disable-extensions', '--disable-gpu','--no-sandbox','--disable-dev-shm-usage', '--headless', '--disable-blink-features=AutomationControlled', '--disable-images','--disable-css']
 
   browser = Watir::Browser.new :chrome, options: { args: options }
   raise Exception.new "Browser error" if !browser.present?
