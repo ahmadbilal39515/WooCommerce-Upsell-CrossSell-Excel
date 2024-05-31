@@ -6,7 +6,6 @@ task :up_cross_sell_product => :environment do
 
   browser = Watir::Browser.new :chrome, options: { args: options }
   raise Exception.new "Browser error" if !browser.present?
-
   base_url = "https://www.thejewelryvine.com"
   last_page_url = "https://www.thejewelryvine.com/product-category/childrens-jewelry-collections/disney-childrens-jewelry/"
   last_url_record = ""
@@ -86,14 +85,15 @@ task :up_cross_sell_product => :environment do
           browser_4 = Watir::Browser.new :chrome, options: { args: options }
           raise Exception.new "Browser error" if !browser_4.present?
           products.each do |product|
-            browser_4.goto product.a.href
+            existing_product = sub_category.products.find_by(product_url: product.a.href)
+            next if existing_product
             next if !browser_4.element(xpath: "//h1[contains(@class, 'product-title') and contains(@class, 'product_title') and contains(@class, 'entry-title')]").present?
-            product_title = browser_4.element(xpath: "//h1[contains(@class, 'product-title') and contains(@class, 'product_title') and contains(@class, 'entry-title')]").text
-            
-            product_price = browser_4.input(xpath: "//input[@type='hidden' and contains(@class, 'product-options-product-price')]").value
+            browser_4.goto product.a.href
+            # existing_product = sub_category.products.find_by(sku: product_sku)
+            # next if existing_product
             product_sku = browser_4.element(xpath: "//span[contains(@class, 'sku_wrapper')]").span.text
-            existing_product = sub_category.products.find_by(sku: product_sku)
-            next if existing_product 
+            product_title = browser_4.element(xpath: "//h1[contains(@class, 'product-title') and contains(@class, 'product_title') and contains(@class, 'entry-title')]").text
+            product_price = browser_4.input(xpath: "//input[@type='hidden' and contains(@class, 'product-options-product-price')]").value
             sub_category.products.create(title: product_title, price: product_price, sku: product_sku, product_url: product.a.href)
             puts " =================#{product_title}==========#{product_price}=============#{product_sku}"
           end
@@ -116,4 +116,5 @@ task :up_cross_sell_product => :environment do
   end
   puts "=============script end==================="
   browser.close
+  LastPageUrl.create!(url: last_url_record)
 end

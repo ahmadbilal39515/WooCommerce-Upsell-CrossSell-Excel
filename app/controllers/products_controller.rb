@@ -5,7 +5,9 @@ class ProductsController < ApplicationController
   end
    
   def get_csv
-    products = Product.includes(sub_category: :category).where(created_at: params[:startDate]..params[:endDate] )
+    start_date = params[:startDate].to_date.beginning_of_day
+    end_date = params[:endDate].to_date.end_of_day
+    products = Product.includes(sub_category: :category).where(created_at: start_date..end_date)
     csv_data = ProductExportService.to_csv(products)
     filename = "products_list_#{params[:startDate].to_s}_#{params[:endDate].to_s}.csv"
     respond_to do |format|
