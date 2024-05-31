@@ -1,7 +1,7 @@
 require 'watir'
 require 'json'
 
-task :up_cross_sell_script => :environment do
+task :first => :environment do
   # Initialize the browser (e.g., Chrome)
     options = [
       '--disable-infobars',

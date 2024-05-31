@@ -1,7 +1,6 @@
 require 'watir'
-# require 'json'
 
-task :third => :environment do
+task :up_cross_sell_product => :environment do
 
   options = [ '--disable-infobars', '--disable-extensions', '--disable-gpu','--no-sandbox','--disable-dev-shm-usage', '--headless', '--disable-blink-features=AutomationControlled', '--disable-images','--disable-css']
 

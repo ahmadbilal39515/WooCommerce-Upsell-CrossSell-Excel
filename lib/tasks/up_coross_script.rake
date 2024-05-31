@@ -4,7 +4,7 @@ require 'json'
 
 desc "This task going to scapre data"
 
-task up_cross_product: :environment do
+task second: :environment do
   attempts = 0
   begin 
     attempts += 1
