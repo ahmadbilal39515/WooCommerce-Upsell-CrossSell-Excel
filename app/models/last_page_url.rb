@@ -1,0 +1,2 @@
+class LastPageUrl < ApplicationRecord
+end
