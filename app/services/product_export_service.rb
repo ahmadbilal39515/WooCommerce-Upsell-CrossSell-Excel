@@ -11,8 +11,8 @@ class ProductExportService
               "CrossSell_3 Product Title", "CrossSell_3 Product SKU", "CrossSell_3 Product Price"]
 
       products.each do |product|
-        upsells = find_upsells(product)
-        cross_sells = find_cross_sells(product)
+        upsells = find_upsells(product, products)
+        cross_sells = find_cross_sells(product, products)
 
         csv << [
           product.title, product.sku, product.price,
@@ -27,48 +27,44 @@ class ProductExportService
     end
   end
 
-  def self.find_upsells(product)
-		if product.sub_category
-			category_id = product.sub_category.category&.id
-	
-			if category_id
-				Product.joins(sub_category: :category)
-							 .where(categories: { id: category_id })
-							 .where(sub_category_id: product.sub_category_id)
-							 .where.not(id: product.id)
-							 .order("RANDOM()")
-							 .limit(3)
-			else
-				Product.where(sub_category_id: product.sub_category_id)
-							 .where.not(id: product.id)
-							 .order("RANDOM()")
-							 .limit(3)
-			end
-		else
-			[]
-		end
-	end
-
-  def self.find_cross_sells(product)
-    if product.sub_category
-      category_id = product.sub_category.category&.id
-
-      if category_id
-        Product.joins(sub_category: :category)
-               .where.not(categories: { id: category_id })
-							 .where.not(sub_category_id: product.sub_category_id)
-               .where.not(id: product.id)
-							 .order("RANDOM()")
-               .limit(3)
-      else
-        Product.where.not(sub_category_id: product.sub_category_id)
-               .where.not(id: product.id)
-							 .order("RANDOM()")
-               .limit(3)
+  def self.find_upsells(product, products)
+    return [] unless product.sub_category
+    category_id = product.sub_category.category&.id
+  
+    if category_id
+      filtered_products = products.select do |p|
+        p.sub_category.category_id == category_id &&
+        p.sub_category_id == product.sub_category_id &&
+        p.id != product.id
       end
     else
-      []
+      filtered_products = products.select do |p|
+        p.sub_category_id == product.sub_category_id &&
+        p.id != product.id
+      end
     end
+  
+    filtered_products.sample(3)
+  end
+
+  def self.find_cross_sells(product, products)
+    return [] unless product.sub_category
+    category_id = product.sub_category.category&.id
+  
+    if category_id
+      filtered_products = products.select do |p|
+        p.sub_category.category_id != category_id &&
+        p.sub_category_id != product.sub_category_id &&
+        p.id != product.id
+      end
+    else
+      filtered_products = products.select do |p|
+        p.sub_category_id != product.sub_category_id &&
+        p.id != product.id
+      end
+    end
+  
+    filtered_products.sample(3)
   end
 
 	# def self.find_cross_sells(product)
