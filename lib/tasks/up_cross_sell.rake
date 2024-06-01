@@ -1,8 +1,8 @@
 require 'watir'
 
-task :up_cross_sell_product => :environment do
+task :up_cross_sell_products => :environment do
 
-  options = [ '--disable-infobars', '--disable-extensions', '--disable-gpu','--no-sandbox','--disable-dev-shm-usage', '--headless', '--disable-blink-features=AutomationControlled', '--disable-images','--disable-css']
+  options = [ '--disable-infobars', '--disable-extensions', '--disable-gpu','--no-sandbox','--disable-dev-shm-usage', '--disable-blink-features=AutomationControlled', '--disable-images','--disable-css']
 
   browser = Watir::Browser.new :chrome, options: { args: options }
   raise Exception.new "Browser error" if !browser.present?
@@ -79,22 +79,22 @@ task :up_cross_sell_product => :environment do
         a_tag = second_last_li.a
         products_page_count = a_tag.text.to_i+1
         (last_page_number...products_page_count).each do |page_number|
-            last_url_record = "#{page}page/#{page_number}"
+          last_url_record = "#{page}page/#{page_number}"
+          LastPageUrl.create!(url: last_url_record)
           puts "==================#{last_url_record}================"
           puts "=================================="
           browser_4 = Watir::Browser.new :chrome, options: { args: options }
           raise Exception.new "Browser error" if !browser_4.present?
           products.each do |product|
-            existing_product = sub_category.products.find_by(product_url: product.a.href)
+            product_url = product.a.href
+            existing_product = sub_category.products.find_by(product_url: product_url)
             next if existing_product
-            next if !browser_4.element(xpath: "//h1[contains(@class, 'product-title') and contains(@class, 'product_title') and contains(@class, 'entry-title')]").present?
-            browser_4.goto product.a.href
-            # existing_product = sub_category.products.find_by(sku: product_sku)
-            # next if existing_product
+            browser_4.goto product_url
+            next unless browser_4.element(xpath: "//h1[contains(@class, 'product-title') and contains(@class, 'product_title') and contains(@class, 'entry-title')]").present?
             product_sku = browser_4.element(xpath: "//span[contains(@class, 'sku_wrapper')]").span.text
             product_title = browser_4.element(xpath: "//h1[contains(@class, 'product-title') and contains(@class, 'product_title') and contains(@class, 'entry-title')]").text
             product_price = browser_4.input(xpath: "//input[@type='hidden' and contains(@class, 'product-options-product-price')]").value
-            sub_category.products.create(title: product_title, price: product_price, sku: product_sku, product_url: product.a.href)
+            sub_category.products.create(title: product_title, price: product_price, sku: product_sku, product_url: product_url)
             puts " =================#{product_title}==========#{product_price}=============#{product_sku}"
           end
           browser_4.close 
@@ -108,7 +108,6 @@ task :up_cross_sell_product => :environment do
     end
    
   rescue StandardError => e
-    LastPageUrl.create!(url: last_url_record)
     attempts += 1
     puts "Error encountered: #{e.message}. Attempt #{attempts} of 5."
     sleep 5
@@ -116,5 +115,4 @@ task :up_cross_sell_product => :environment do
   end
   puts "=============script end==================="
   browser.close
-  LastPageUrl.create!(url: last_url_record)
 end
