@@ -52,7 +52,6 @@ task :up_cross_sell_products => :environment do
       category_data = page.split('.com')[1]
       category_data_second = category_data.split('/')
       if category_data_second[3]
-
         category = Category.find_or_create_by(title: category_data_second[2])
         sub_category = category.sub_categories.find_or_create_by(title: category_data_second[3])
       else
@@ -74,6 +73,8 @@ task :up_cross_sell_products => :environment do
       
       products_pagination =  browser.element(xpath: "/html/body/div[2]/main/div/div[1]/div/nav/ul")
       products = browser.elements(xpath: "//*[contains(@class, 'name') and contains(@class, 'product-title') and contains(@class, 'woocommerce-loop-product__title')]")
+      browser_4 = Watir::Browser.new :chrome, options: { args: options }
+      raise Exception.new "Browser error" if !browser_4.present?
       if products_pagination.lis.present?
         second_last_li = products_pagination.lis[-2]
         a_tag = second_last_li.a
@@ -83,26 +84,14 @@ task :up_cross_sell_products => :environment do
           LastPageUrl.create!(url: last_url_record)
           puts "==================#{last_url_record}================"
           puts "=================================="
-          browser_4 = Watir::Browser.new :chrome, options: { args: options }
-          raise Exception.new "Browser error" if !browser_4.present?
-          products.each do |product|
-            product_url = product.a.href
-            existing_product = sub_category.products.find_by(product_url: product_url)
-            next if existing_product
-            browser_4.goto product_url
-            next unless browser_4.element(xpath: "//h1[contains(@class, 'product-title') and contains(@class, 'product_title') and contains(@class, 'entry-title')]").present?
-            product_sku = browser_4.element(xpath: "//span[contains(@class, 'sku_wrapper')]").span.text
-            product_title = browser_4.element(xpath: "//h1[contains(@class, 'product-title') and contains(@class, 'product_title') and contains(@class, 'entry-title')]").text
-            product_price = browser_4.input(xpath: "//input[@type='hidden' and contains(@class, 'product-options-product-price')]").value
-            sub_category.products.create(title: product_title, price: product_price, sku: product_sku, product_url: product_url)
-            puts " =================#{product_title}==========#{product_price}=============#{product_sku}"
-          end
-          browser_4.close 
+          create_product(browser_4, products, sub_category)
           puts "=================================="
           puts "================== page end ============"
           next_url = "#{page}page/#{page_number+1}"
           browser.goto(next_url)
         end
+      else
+        create_product(browser_4, products, sub_category)
       end
       break if page == last_page_url
     end
@@ -118,4 +107,21 @@ task :up_cross_sell_products => :environment do
     LastPageUrl.create!(url: last_url_record)
   end
   browser.close
+end
+
+
+def create_product(browser_4, products, sub_category)
+  products.each do |product|
+    product_url = product.a.href
+    existing_product = sub_category.products.find_by(product_url: product_url)
+    next if existing_product
+    browser_4.goto product_url
+    next unless browser_4.element(xpath: "//h1[contains(@class, 'product-title') and contains(@class, 'product_title') and contains(@class, 'entry-title')]").present?
+    product_sku = browser_4.element(xpath: "//span[contains(@class, 'sku_wrapper')]").span.text
+    product_title = browser_4.element(xpath: "//h1[contains(@class, 'product-title') and contains(@class, 'product_title') and contains(@class, 'entry-title')]").text
+    product_price = browser_4.input(xpath: "//input[@type='hidden' and contains(@class, 'product-options-product-price')]").value
+    sub_category.products.create(title: product_title, price: product_price, sku: product_sku, product_url: product_url)
+    puts " =================#{product_title}==========#{product_price}=============#{product_sku}"
+  end
+  browser_4.close
 end
