@@ -1,21 +1,9 @@
 require 'watir'
 
 task :new_up_cross_sell_products => :environment do
-  options = {
-    args: [
-      '--disable-infobars',
-      '--disable-extensions',
-      '--disable-gpu',
-      '--no-sandbox',
-      '--disable-dev-shm-usage',
-      '--headless',
-      '--disable-blink-features=AutomationControlled',
-      '--disable-images',
-      '--disable-css'
-    ]
-  }
+  options = ['--disable-infobars', '--disable-extensions', '--disable-gpu', '--no-sandbox', '--disable-dev-shm-usage', '--headless', '--disable-blink-features=AutomationControlled', '--disable-images', '--disable-css']
 
-  browser = Watir::Browser.new :chrome, options: options
+  browser = Watir::Browser.new :chrome, options: { args: options }
   raise Exception.new "Browser error" unless browser.present?
   base_url = "https://www.thejewelryvine.com"
   last_page_url = "https://www.thejewelryvine.com/product-category/childrens-jewelry-collections/disney-childrens-jewelry/"
