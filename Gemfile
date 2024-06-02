@@ -32,6 +32,8 @@ gem "jbuilder"
 
 gem 'tailwindcss-rails'
 
+gem 'webdrivers', '~> 5.3', '>= 5.3.1'
+
 gem 'sass-rails', '~> 6.0.0'
 
 gem 'dotenv', '~> 3.1', '>= 3.1.2'

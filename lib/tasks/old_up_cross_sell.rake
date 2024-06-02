@@ -1,11 +1,11 @@
 require 'watir'
-require 'selenium-webdriver'
+# require 'selenium-webdriver'
+require 'webdrivers'
 
 task :up_cross_sell_products => :environment do
 
-  Selenium::WebDriver::Chrome::Service.driver_path = ENV['CHROMEDRIVER_PATH']
-
   options = Selenium::WebDriver::Chrome::Options.new
+  # options.binary = ENV['GOOGLE_CHROME_BIN']
   options.add_argument('--disable-infobars') 
   options.add_argument('--disable-extensions') 
   options.add_argument('--disable-gpu') 
@@ -15,7 +15,7 @@ task :up_cross_sell_products => :environment do
   options.add_argument('--disable-blink-features=AutomationControlled') 
   options.add_argument('--disable-images') 
   options.add_argument('--disable-css')
-
+  # Selenium::WebDriver::Chrome::Service.driver_path = ENV['CHROMEDRIVER_PATH']
   browser = Watir::Browser.new :chrome, options: options
   raise Exception.new "Browser error" if !browser.present?
   base_url = "https://www.thejewelryvine.com"
