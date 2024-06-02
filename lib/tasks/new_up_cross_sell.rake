@@ -1,6 +1,9 @@
 require 'watir'
+require 'webdrivers/chromedriver'
 
 task :up_cross_sell_products => :environment do
+
+  # Selenium::WebDriver::Chrome.path = ENV['GOOGLE_CHROME_BIN']
 
     browser_options = {
     args: [
