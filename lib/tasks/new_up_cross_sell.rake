@@ -1,10 +1,21 @@
 require 'watir'
+require 'webdrivers'
 
-task :old_up_cross_sell_products => :environment do
+task :up_cross_sell_products => :environment do
 
-  options = [ '--disable-infobars', '--disable-extensions', '--disable-gpu','--no-sandbox','--disable-dev-shm-usage','--headless', '--disable-blink-features=AutomationControlled', '--disable-images','--disable-css']
-
-  browser = Watir::Browser.new :chrome, options: { args: options }
+  options = Selenium::WebDriver::Chrome::Options.new
+  options.binary = ENV['GOOGLE_CHROME_BIN']
+  options.add_argument('--disable-infobars') 
+  options.add_argument('--disable-extensions') 
+  options.add_argument('--disable-gpu') 
+  options.add_argument('--no-sandbox') 
+  options.add_argument('--disable-dev-shm-usage') 
+  options.add_argument('--headless') 
+  options.add_argument('--disable-blink-features=AutomationControlled') 
+  options.add_argument('--disable-images') 
+  options.add_argument('--disable-css')
+  Selenium::WebDriver::Chrome::Service.driver_path = ENV['CHROMEDRIVER_PATH']
+  browser = Watir::Browser.new :chrome, options: options
   raise Exception.new "Browser error" if !browser.present?
   base_url = "https://www.thejewelryvine.com"
   last_page_url = "https://www.thejewelryvine.com/product-category/childrens-jewelry-collections/disney-childrens-jewelry/"
@@ -17,56 +28,34 @@ task :old_up_cross_sell_products => :environment do
   begin
     if LastPageUrl.any?
       last_url = LastPageUrl.last&.url
-      if last_url&.include?('/page/')
-        url_data = LastPageUrl.last&.url.split('page/')
-        cleaned_last_url = url_data.first
-      else
-        cleaned_last_url = LastPageUrl.last&.url
-      end
-      if cleaned_last_url == last_page_url
-        LastPageUrl.delete_all
-      end
+      cleaned_last_url = last_url&.include?('/page/') ? last_url.split('page/').first : last_url
+      LastPageUrl.delete_all if cleaned_last_url == last_page_url
     end
+
     browser.goto "#{base_url}"
     pages = browser.elements(xpath: "//li[contains(@class, 'menu-item') and contains(@class, 'menu-item-type-taxonomy') and contains(@class, 'menu-item-object-product_cat') and not(contains(@class, 'menu-item-design-default')) and not(contains(@class, 'has-dropdown')) and not(contains(@class, 'nav-dropdown-col'))]")
     
     pages.each do |page|
       page_url = page.a.href
       pages_array << page_url
-      if page_url == cleaned_last_url
-        last_url_record = page_url
-      end
+      last_url_record = page_url if page_url == cleaned_last_url
     end
 
-    start_url = last_url_record.present? ? last_url_record : pages_array.first
-    start_index = pages_array.index(start_url)
-
-    if start_index.nil?
-      puts "Starting URL not found in the list. Using the entire list."
-      start_index = 0
-    end
-
+    start_url = last_url_record.presence || pages_array.first
+    start_index = pages_array.index(start_url) || 0
     category_pages = pages_array[start_index..-1]
 
     category_pages.each do |page|
-      category_data = page.split('.com')[1]
-      category_data_second = category_data.split('/')
-      if category_data_second[3]
-        category = Category.find_or_create_by(title: category_data_second[2])
-        sub_category = category.sub_categories.find_or_create_by(title: category_data_second[3])
-      else
-        sub_category = SubCategory.find_or_create_by(title: category_data_second[2])
-      end
+      category_data = page.split('.com')[1].split('/')
+      category = category_data[3] ? Category.find_or_create_by(title: category_data[2]) : SubCategory.find_or_create_by(title: category_data[2])
+      sub_category = category_data[3] ? category.sub_categories.find_or_create_by(title: category_data[3]) : category
+
       last_page_number = 1
       if LastPageUrl.any?
         last_url = LastPageUrl.last&.url
-        if last_url&.include?('/page/')
-          last_page_number = url_data.second.to_i
-          browser.goto last_url
-          LastPageUrl.delete_all
-        else
-          browser.goto page
-        end
+        last_page_number = last_url.split('page/').second.to_i if last_url&.include?('/page/')
+        browser.goto last_url || page
+        LastPageUrl.delete_all
       else
         browser.goto page
       end
@@ -83,28 +72,14 @@ task :old_up_cross_sell_products => :environment do
           LastPageUrl.create!(url: last_url_record)
           puts "==================#{last_url_record}================"
           puts "=================================="
-          browser_4 = Watir::Browser.new :chrome, options: { args: options }
-  raise Exception.new "Browser error" if !browser_4.present?
-  products.each do |product|
-    product_url = product.a.href
-    existing_product = sub_category.products.find_by(product_url: product_url)
-    next if existing_product
-    browser_4.goto product_url
-    next unless browser_4.element(xpath: "//h1[contains(@class, 'product-title') and contains(@class, 'product_title') and contains(@class, 'entry-title')]").present?
-    product_sku = browser_4.element(xpath: "//span[contains(@class, 'sku_wrapper')]").span.text
-    product_title = browser_4.element(xpath: "//h1[contains(@class, 'product-title') and contains(@class, 'product_title') and contains(@class, 'entry-title')]").text
-    product_price = browser_4.input(xpath: "//input[@type='hidden' and contains(@class, 'product-options-product-price')]").value
-    sub_category.products.create(title: product_title, price: product_price, sku: product_sku, product_url: product_url)
-    puts " =================#{product_title}==========#{product_price}=============#{product_sku}"
-  end
-  browser_4.close
+          store_products(options, sub_category, products)
           puts "=================================="
           puts "================== page end ============"
           next_url = "#{page}page/#{page_number+1}"
           browser.goto(next_url)
         end
       else
-        create_product(options, products, sub_category)
+        store_products(options, sub_category, products)
       end
       break if page == last_page_url
     end
@@ -122,9 +97,8 @@ task :old_up_cross_sell_products => :environment do
   browser.close
 end
 
-
-def create_product(options, products, sub_category)
-  browser_4 = Watir::Browser.new :chrome, options: { args: options }
+def store_products(options, sub_category, products)
+  browser_4 = Watir::Browser.new :chrome, options: options
   raise Exception.new "Browser error" if !browser_4.present?
   products.each do |product|
     product_url = product.a.href
