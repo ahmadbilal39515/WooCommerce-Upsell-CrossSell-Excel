@@ -17,56 +17,34 @@ task :up_cross_sell_products => :environment do
   begin
     if LastPageUrl.any?
       last_url = LastPageUrl.last&.url
-      if last_url&.include?('/page/')
-        url_data = LastPageUrl.last&.url.split('page/')
-        cleaned_last_url = url_data.first
-      else
-        cleaned_last_url = LastPageUrl.last&.url
-      end
-      if cleaned_last_url == last_page_url
-        LastPageUrl.delete_all
-      end
+      cleaned_last_url = last_url&.include?('/page/') ? last_url.split('page/').first : last_url
+      LastPageUrl.delete_all if cleaned_last_url == last_page_url
     end
+
     browser.goto "#{base_url}"
     pages = browser.elements(xpath: "//li[contains(@class, 'menu-item') and contains(@class, 'menu-item-type-taxonomy') and contains(@class, 'menu-item-object-product_cat') and not(contains(@class, 'menu-item-design-default')) and not(contains(@class, 'has-dropdown')) and not(contains(@class, 'nav-dropdown-col'))]")
     
     pages.each do |page|
       page_url = page.a.href
       pages_array << page_url
-      if page_url == cleaned_last_url
-        last_url_record = page_url
-      end
+      last_url_record = page_url if page_url == cleaned_last_url
     end
 
-    start_url = last_url_record.present? ? last_url_record : pages_array.first
-    start_index = pages_array.index(start_url)
-
-    if start_index.nil?
-      puts "Starting URL not found in the list. Using the entire list."
-      start_index = 0
-    end
-
+    start_url = last_url_record.presence || pages_array.first
+    start_index = pages_array.index(start_url) || 0
     category_pages = pages_array[start_index..-1]
 
     category_pages.each do |page|
-      category_data = page.split('.com')[1]
-      category_data_second = category_data.split('/')
-      if category_data_second[3]
-        category = Category.find_or_create_by(title: category_data_second[2])
-        sub_category = category.sub_categories.find_or_create_by(title: category_data_second[3])
-      else
-        sub_category = SubCategory.find_or_create_by(title: category_data_second[2])
-      end
+      category_data = page.split('.com')[1].split('/')
+      category = category_data[3] ? Category.find_or_create_by(title: category_data[2]) : SubCategory.find_or_create_by(title: category_data[2])
+      sub_category = category_data[3] ? category.sub_categories.find_or_create_by(title: category_data[3]) : category
+
       last_page_number = 1
       if LastPageUrl.any?
         last_url = LastPageUrl.last&.url
-        if last_url&.include?('/page/')
-          last_page_number = url_data.second.to_i
-          browser.goto last_url
-          LastPageUrl.delete_all
-        else
-          browser.goto page
-        end
+        last_page_number = last_url.split('page/').second.to_i if last_url&.include?('/page/')
+        browser.goto last_url || page
+        LastPageUrl.delete_all
       else
         browser.goto page
       end
