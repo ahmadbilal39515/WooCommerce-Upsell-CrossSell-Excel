@@ -21,6 +21,7 @@ task :up_cross_sell_products => :environment do
       LastPageUrl.delete_all if cleaned_last_url == last_page_url
     end
 
+  
     browser.goto "#{base_url}"
     pages = browser.elements(xpath: "//li[contains(@class, 'menu-item') and contains(@class, 'menu-item-type-taxonomy') and contains(@class, 'menu-item-object-product_cat') and not(contains(@class, 'menu-item-design-default')) and not(contains(@class, 'has-dropdown')) and not(contains(@class, 'nav-dropdown-col'))]")
     
