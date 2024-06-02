@@ -38,8 +38,6 @@ gem 'dotenv', '~> 3.1', '>= 3.1.2'
 
 gem 'roo'
 
-gem 'webdrivers'
-
 # Use Redis adapter to run Action Cable in production
 # gem "redis", ">= 4.0.1"
 
