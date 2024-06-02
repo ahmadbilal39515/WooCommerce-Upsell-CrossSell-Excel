@@ -1,5 +1,4 @@
 require 'watir'
-require 'webdrivers'
 
 task :new_up_cross_sell_products => :environment do
   options = [
