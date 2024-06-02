@@ -2,20 +2,21 @@ require 'watir'
 
 task :up_cross_sell_products => :environment do
 
-  options = Selenium::WebDriver::Chrome::Options.new
-  options.add_argument('--disable-infobars') 
-  options.add_argument('--disable-extensions') 
-  options.add_argument('--disable-gpu') 
-  options.add_argument('--no-sandbox') 
-  options.add_argument('--disable-dev-shm-usage') 
-  options.add_argument('--headless') 
-  options.add_argument('--disable-blink-features=AutomationControlled') 
-  options.add_argument('--disable-images') 
-  options.add_argument('--disable-css')
-  chromedriver_path = ENV['CHROMEDRIVER_PATH']
-  raise "CHROMEDRIVER_PATH environment variable not set" unless chromedriver_path
-  service = Selenium::WebDriver::Service.chrome(path: chromedriver_path)
-  browser = Watir::Browser.new :chrome, options: options, service: service
+    browser_options = {
+    args: [
+      '--disable-infobars',
+      '--disable-extensions',
+      '--disable-gpu',
+      '--no-sandbox',
+      '--disable-dev-shm-usage',
+      '--headless',
+      '--disable-blink-features=AutomationControlled',
+      '--disable-images',
+      '--disable-css'
+    ]
+  }
+
+  browser = Watir::Browser.new :chrome, options: browser_options
   raise Exception.new "Browser error" if !browser.present?
   base_url = "https://www.thejewelryvine.com"
   last_page_url = "https://www.thejewelryvine.com/product-category/childrens-jewelry-collections/disney-childrens-jewelry/"
@@ -72,14 +73,14 @@ task :up_cross_sell_products => :environment do
           LastPageUrl.create!(url: last_url_record)
           puts "==================#{last_url_record}================"
           puts "=================================="
-          store_products(options, sub_category, products)
+          store_products(browser_options, sub_category, products)
           puts "=================================="
           puts "================== page end ============"
           next_url = "#{page}page/#{page_number+1}"
           browser.goto(next_url)
         end
       else
-        store_products(options, sub_category, products)
+        store_products(browser_options, sub_category, products)
       end
       break if page == last_page_url
     end
