@@ -73,8 +73,7 @@ task :up_cross_sell_products => :environment do
       
       products_pagination =  browser.element(xpath: "/html/body/div[2]/main/div/div[1]/div/nav/ul")
       products = browser.elements(xpath: "//*[contains(@class, 'name') and contains(@class, 'product-title') and contains(@class, 'woocommerce-loop-product__title')]")
-      browser_4 = Watir::Browser.new :chrome, options: { args: options }
-      raise Exception.new "Browser error" if !browser_4.present?
+
       if products_pagination.lis.present?
         second_last_li = products_pagination.lis[-2]
         a_tag = second_last_li.a
@@ -84,14 +83,14 @@ task :up_cross_sell_products => :environment do
           LastPageUrl.create!(url: last_url_record)
           puts "==================#{last_url_record}================"
           puts "=================================="
-          create_product(browser_4, products, sub_category)
+          create_product(options, products, sub_category)
           puts "=================================="
           puts "================== page end ============"
           next_url = "#{page}page/#{page_number+1}"
           browser.goto(next_url)
         end
       else
-        create_product(browser_4, products, sub_category)
+        create_product(options, products, sub_category)
       end
       break if page == last_page_url
     end
@@ -110,7 +109,9 @@ task :up_cross_sell_products => :environment do
 end
 
 
-def create_product(browser_4, products, sub_category)
+def create_product(options, products, sub_category)
+  browser_4 = Watir::Browser.new :chrome, options: { args: options }
+  raise Exception.new "Browser error" if !browser_4.present?
   products.each do |product|
     product_url = product.a.href
     existing_product = sub_category.products.find_by(product_url: product_url)
