@@ -19,9 +19,9 @@ task :up_cross_sell_products => :environment do
   chromedriver_path = ENV['CHROMEDRIVER_PATH']
   raise "CHROMEDRIVER_PATH environment variable not set" unless chromedriver_path
   service = Selenium::WebDriver::Service.chrome(path: chromedriver_path)
-
   browser = Watir::Browser.new :chrome, options: options, service: service
   raise Exception.new "Browser error" if !browser.present?
+
   base_url = "https://www.thejewelryvine.com"
   last_page_url = "https://www.thejewelryvine.com/product-category/childrens-jewelry-collections/disney-childrens-jewelry/"
   last_url_record = ""
