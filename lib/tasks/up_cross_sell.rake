@@ -114,5 +114,8 @@ task :up_cross_sell_products => :environment do
     retry if attempts < 5
   end
   puts "=============script end==================="
+  unless last_url_record.nil?
+    LastPageUrl.create!(url: last_url_record)
+  end
   browser.close
 end

@@ -66,39 +66,4 @@ class ProductExportService
   
     filtered_products.sample(3)
   end
-
-	# def self.find_cross_sells(product)
-	# 	prohibited_words = product.title.split(/\W+/).map(&:downcase).uniq
-
-	# 	if product.sub_category
-	# 		category_id = product.sub_category.category&.id
-
-	# 		if category_id
-	# 			query = Product.joins(sub_category: :category)
-	# 										 .where.not(categories: { id: category_id })
-	# 										 .where.not(sub_category_id: product.sub_category_id)
-	# 										 .where.not(id: product.id)
-	# 										 .order("RANDOM()")
-	# 										 .limit(3)
-
-	# 			prohibited_words.each do |word|
-	# 				query = query.where.not("lower(products.title) LIKE ?", "%#{word}%")
-	# 			end
-	# 			query
-	# 		else
-	# 			query = Product.where.not(sub_category_id: product.sub_category_id)
-	# 										 .where.not(id: product.id)
-	# 										 .order("RANDOM()")
-	# 										 .limit(3)
-
-	# 			prohibited_words.each do |word|
-	# 				query = query.where.not("lower(products.title) LIKE ?", "%#{word}%")
-	# 			end
-
-	# 			query
-	# 		end
-	# 	else
-	# 		[]
-	# 	end
-	# end
 end

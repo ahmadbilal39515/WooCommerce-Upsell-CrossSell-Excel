@@ -15,9 +15,4 @@ export default class extends Controller {
   closeModal(){
     this.modal.toggle()
   }
-
-  submitButton(event){
-    event.preventDefault()
-    alert("ssddd")
-  }
 }
