@@ -3,9 +3,9 @@ require 'watir'
 task :up_cross_sell_products => :environment do
 
   options = Selenium::WebDriver::Chrome::Options.new
-  chrome_bin = ENV['GOOGLE_CHROME_BIN']
-  raise "GOOGLE_CHROME_BIN environment variable not set" unless chrome_bin
-  options.binary = chrome_bin
+  # chrome_bin = ENV['GOOGLE_CHROME_BIN']
+  # raise "GOOGLE_CHROME_BIN environment variable not set" unless chrome_bin
+  # options.binary = chrome_bin
   options.add_argument('--disable-infobars') 
   options.add_argument('--disable-extensions') 
   options.add_argument('--disable-gpu') 
@@ -15,7 +15,11 @@ task :up_cross_sell_products => :environment do
   options.add_argument('--disable-blink-features=AutomationControlled') 
   options.add_argument('--disable-images') 
   options.add_argument('--disable-css')
-  chromedriver_path = ENV['CHROMEDRIVER_PATH']
+
+  # development
+  # chromedriver_path = ENV['CHROMEDRIVER_PATH']
+  # production
+  chromedriver_path = "#{Rails.root}#{ENV['CHROMEDRIVER_PATH']}"
   raise "CHROMEDRIVER_PATH environment variable not set" unless chromedriver_path
   service = Selenium::WebDriver::Service.chrome(path: chromedriver_path)
   browser = Watir::Browser.new :chrome, options: options, service: service
