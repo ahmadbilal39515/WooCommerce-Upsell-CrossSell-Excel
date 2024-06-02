@@ -2,18 +2,18 @@ require 'watir'
 
 task :new_up_cross_sell_products => :environment do
   options = {
-  args: [
-    '--disable-infobars', 
-    '--disable-extensions', 
-    '--disable-gpu', 
-    '--no-sandbox', 
-    '--disable-dev-shm-usage', 
-    '--headless', 
-    '--disable-blink-features=AutomationControlled', 
-    '--disable-images', 
-    '--disable-css'
-  ]
-}
+    args: [
+      '--disable-infobars',
+      '--disable-extensions',
+      '--disable-gpu',
+      '--no-sandbox',
+      '--disable-dev-shm-usage',
+      '--headless',
+      '--disable-blink-features=AutomationControlled',
+      '--disable-images',
+      '--disable-css'
+    ]
+  }
 
   browser = Watir::Browser.new :chrome, options: options
   raise Exception.new "Browser error" unless browser.present?
@@ -72,7 +72,7 @@ task :new_up_cross_sell_products => :environment do
           LastPageUrl.create!(url: last_url_record)
           puts "==================#{last_url_record}================"
           puts "=================================="
-          create_product(options, products, sub_category)
+          create_product(browser, products, sub_category)
           puts "=================================="
           puts "================== page end ============"
           next_url = "#{page}page/#{page_number + 1}"
