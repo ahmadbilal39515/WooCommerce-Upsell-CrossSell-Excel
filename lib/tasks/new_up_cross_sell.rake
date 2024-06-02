@@ -1,7 +1,18 @@
 require 'watir'
+require 'webdrivers'
 
-task :new_up_cross_sell_products => :environment do
-  options = ['--disable-infobars', '--disable-extensions', '--disable-gpu', '--no-sandbox', '--disable-dev-shm-usage', '--headless', '--disable-blink-features=AutomationControlled', '--disable-images', '--disable-css']
+task :up_cross_sell_products => :environment do
+  options = [
+    '--disable-infobars', 
+    '--disable-extensions', 
+    '--disable-gpu', 
+    '--no-sandbox', 
+    '--disable-dev-shm-usage', 
+    '--headless', 
+    '--disable-blink-features=AutomationControlled', 
+    '--disable-images', 
+    '--disable-css'
+  ]
 
   browser = Watir::Browser.new :chrome, options: { args: options }
   raise Exception.new "Browser error" unless browser.present?
