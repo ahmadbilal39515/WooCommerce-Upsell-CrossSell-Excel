@@ -3,7 +3,7 @@ require 'webdrivers/chromedriver'
 
 task :up_cross_sell_products => :environment do
 
-  # Selenium::WebDriver::Chrome.path = ENV['GOOGLE_CHROME_BIN']
+  chrome_bin_path = ENV['GOOGLE_CHROME_BIN'] || '/app/.apt/usr/bin/google-chrome'
 
     browser_options = {
     args: [
@@ -12,13 +12,14 @@ task :up_cross_sell_products => :environment do
       '--disable-gpu',
       '--no-sandbox',
       '--disable-dev-shm-usage',
-      '--headless',
+      # '--headless',
       '--disable-blink-features=AutomationControlled',
       '--disable-images',
       '--disable-css'
     ]
   }
 
+  Selenium::WebDriver::Chrome.path = chrome_bin_path
   browser = Watir::Browser.new :chrome, options: browser_options
   raise Exception.new "Browser error" if !browser.present?
   base_url = "https://www.thejewelryvine.com"
@@ -76,14 +77,14 @@ task :up_cross_sell_products => :environment do
           LastPageUrl.create!(url: last_url_record)
           puts "==================#{last_url_record}================"
           puts "=================================="
-          store_products(browser_options, sub_category, products)
+          # store_products(browser_options, sub_category, products)
           puts "=================================="
           puts "================== page end ============"
           next_url = "#{page}page/#{page_number+1}"
           browser.goto(next_url)
         end
       else
-        store_products(browser_options, sub_category, products)
+        # store_products(browser_options, sub_category, products)
       end
       break if page == last_page_url
     end
