@@ -1,11 +1,22 @@
 require 'watir'
+require 'selenium-webdriver'
 
 task :up_cross_sell_products => :environment do
 
-  Selenium::WebDriver::Chrome.driver_path = 'chromedriver-linux64/chromedriver'
-  options = [ '--disable-infobars', '--disable-extensions', '--disable-gpu','--no-sandbox','--disable-dev-shm-usage','--headless', '--disable-blink-features=AutomationControlled', '--disable-images','--disable-css']
+  Selenium::WebDriver::Chrome::Service.driver_path = ENV['CHROMEDRIVER_PATH']
 
-  browser = Watir::Browser.new :chrome, options: { args: options }
+  options = Selenium::WebDriver::Chrome::Options.new
+  options.add_argument('--disable-infobars') 
+  options.add_argument('--disable-extensions') 
+  options.add_argument('--disable-gpu') 
+  options.add_argument('--no-sandbox') 
+  options.add_argument('--disable-dev-shm-usage') 
+  options.add_argument('--headless') 
+  options.add_argument('--disable-blink-features=AutomationControlled') 
+  options.add_argument('--disable-images') 
+  options.add_argument('--disable-css')
+
+  browser = Watir::Browser.new :chrome, options: options
   raise Exception.new "Browser error" if !browser.present?
   base_url = "https://www.thejewelryvine.com"
   last_page_url = "https://www.thejewelryvine.com/product-category/childrens-jewelry-collections/disney-childrens-jewelry/"
@@ -63,14 +74,36 @@ task :up_cross_sell_products => :environment do
           LastPageUrl.create!(url: last_url_record)
           puts "==================#{last_url_record}================"
           puts "=================================="
-          create_product(options, products, sub_category)
+          products.each do |product|
+            product_url = product.a.href
+            existing_product = sub_category.products.find_by(product_url: product_url)
+            next if existing_product
+            browser.goto product_url
+            next unless browser.element(xpath: "//h1[contains(@class, 'product-title') and contains(@class, 'product_title') and contains(@class, 'entry-title')]").present?
+            product_sku = browser.element(xpath: "//span[contains(@class, 'sku_wrapper')]").span.text
+            product_title = browser.element(xpath: "//h1[contains(@class, 'product-title') and contains(@class, 'product_title') and contains(@class, 'entry-title')]").text
+            product_price = browser.input(xpath: "//input[@type='hidden' and contains(@class, 'product-options-product-price')]").value
+            sub_category.products.create(title: product_title, price: product_price, sku: product_sku, product_url: product_url)
+            puts " =================#{product_title}==========#{product_price}=============#{product_sku}"
+          end
           puts "=================================="
           puts "================== page end ============"
           next_url = "#{page}page/#{page_number+1}"
           browser.goto(next_url)
         end
       else
-        create_product(options, products, sub_category)
+        products.each do |product|
+          product_url = product.a.href
+          existing_product = sub_category.products.find_by(product_url: product_url)
+          next if existing_product
+          browser.goto product_url
+          next unless browser.element(xpath: "//h1[contains(@class, 'product-title') and contains(@class, 'product_title') and contains(@class, 'entry-title')]").present?
+          product_sku = browser.element(xpath: "//span[contains(@class, 'sku_wrapper')]").span.text
+          product_title = browser.element(xpath: "//h1[contains(@class, 'product-title') and contains(@class, 'product_title') and contains(@class, 'entry-title')]").text
+          product_price = browser.input(xpath: "//input[@type='hidden' and contains(@class, 'product-options-product-price')]").value
+          sub_category.products.create(title: product_title, price: product_price, sku: product_sku, product_url: product_url)
+          puts " =================#{product_title}==========#{product_price}=============#{product_sku}"
+        end
       end
       break if page == last_page_url
     end
@@ -86,23 +119,4 @@ task :up_cross_sell_products => :environment do
     LastPageUrl.create!(url: last_url_record)
   end
   browser.close
-end
-
-
-def create_product(options, products, sub_category)
-  browser_4 = Watir::Browser.new :chrome, options: { args: options }
-  raise Exception.new "Browser error" if !browser_4.present?
-  products.each do |product|
-    product_url = product.a.href
-    existing_product = sub_category.products.find_by(product_url: product_url)
-    next if existing_product
-    browser_4.goto product_url
-    next unless browser_4.element(xpath: "//h1[contains(@class, 'product-title') and contains(@class, 'product_title') and contains(@class, 'entry-title')]").present?
-    product_sku = browser_4.element(xpath: "//span[contains(@class, 'sku_wrapper')]").span.text
-    product_title = browser_4.element(xpath: "//h1[contains(@class, 'product-title') and contains(@class, 'product_title') and contains(@class, 'entry-title')]").text
-    product_price = browser_4.input(xpath: "//input[@type='hidden' and contains(@class, 'product-options-product-price')]").value
-    sub_category.products.create(title: product_title, price: product_price, sku: product_sku, product_url: product_url)
-    puts " =================#{product_title}==========#{product_price}=============#{product_sku}"
-  end
-  browser_4.close
 end
