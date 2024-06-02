@@ -1,5 +1,4 @@
 require 'watir'
-require 'webdrivers'
 
 task :up_cross_sell_products => :environment do
 
@@ -21,6 +20,7 @@ task :up_cross_sell_products => :environment do
   service = Selenium::WebDriver::Service.chrome(path: chromedriver_path)
   browser = Watir::Browser.new :chrome, options: options, service: service
   raise Exception.new "Browser error" if !browser.present?
+
   base_url = "https://www.thejewelryvine.com"
   last_page_url = "https://www.thejewelryvine.com/product-category/childrens-jewelry-collections/disney-childrens-jewelry/"
   last_url_record = ""
