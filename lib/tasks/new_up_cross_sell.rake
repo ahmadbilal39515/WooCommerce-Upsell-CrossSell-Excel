@@ -4,7 +4,9 @@ require 'webdrivers'
 task :up_cross_sell_products => :environment do
 
   options = Selenium::WebDriver::Chrome::Options.new
-  options.binary = ENV['GOOGLE_CHROME_BIN']
+  chrome_bin = ENV['GOOGLE_CHROME_BIN']
+  raise "GOOGLE_CHROME_BIN environment variable not set" unless chrome_bin
+  options.binary = chrome_bin
   options.add_argument('--disable-infobars') 
   options.add_argument('--disable-extensions') 
   options.add_argument('--disable-gpu') 
@@ -14,8 +16,11 @@ task :up_cross_sell_products => :environment do
   options.add_argument('--disable-blink-features=AutomationControlled') 
   options.add_argument('--disable-images') 
   options.add_argument('--disable-css')
-  Selenium::WebDriver::Chrome::Service.driver_path = ENV['CHROMEDRIVER_PATH']
-  browser = Watir::Browser.new :chrome, options: options
+  chromedriver_path = ENV['CHROMEDRIVER_PATH']
+  raise "CHROMEDRIVER_PATH environment variable not set" unless chromedriver_path
+  service = Selenium::WebDriver::Service.chrome(path: chromedriver_path)
+
+  browser = Watir::Browser.new :chrome, options: options, service: service
   raise Exception.new "Browser error" if !browser.present?
   base_url = "https://www.thejewelryvine.com"
   last_page_url = "https://www.thejewelryvine.com/product-category/childrens-jewelry-collections/disney-childrens-jewelry/"
