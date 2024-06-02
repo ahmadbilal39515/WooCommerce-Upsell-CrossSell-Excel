@@ -1,11 +1,10 @@
 require 'watir'
-# require 'selenium-webdriver'
 require 'webdrivers'
 
 task :up_cross_sell_products => :environment do
 
   options = Selenium::WebDriver::Chrome::Options.new
-  # options.binary = ENV['GOOGLE_CHROME_BIN']
+  options.binary = ENV['GOOGLE_CHROME_BIN']
   options.add_argument('--disable-infobars') 
   options.add_argument('--disable-extensions') 
   options.add_argument('--disable-gpu') 
@@ -15,7 +14,7 @@ task :up_cross_sell_products => :environment do
   options.add_argument('--disable-blink-features=AutomationControlled') 
   options.add_argument('--disable-images') 
   options.add_argument('--disable-css')
-  # Selenium::WebDriver::Chrome::Service.driver_path = ENV['CHROMEDRIVER_PATH']
+  Selenium::WebDriver::Chrome::Service.driver_path = ENV['CHROMEDRIVER_PATH']
   browser = Watir::Browser.new :chrome, options: options
   raise Exception.new "Browser error" if !browser.present?
   base_url = "https://www.thejewelryvine.com"
@@ -33,7 +32,6 @@ task :up_cross_sell_products => :environment do
       LastPageUrl.delete_all if cleaned_last_url == last_page_url
     end
 
-  
     browser.goto "#{base_url}"
     pages = browser.elements(xpath: "//li[contains(@class, 'menu-item') and contains(@class, 'menu-item-type-taxonomy') and contains(@class, 'menu-item-object-product_cat') and not(contains(@class, 'menu-item-design-default')) and not(contains(@class, 'has-dropdown')) and not(contains(@class, 'nav-dropdown-col'))]")
     
