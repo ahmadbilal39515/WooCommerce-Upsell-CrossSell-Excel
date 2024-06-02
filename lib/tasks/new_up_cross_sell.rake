@@ -1,7 +1,7 @@
 require 'watir'
 
 task :new_up_cross_sell_products => :environment do
-  options = [
+    options = [
     '--disable-infobars', 
     '--disable-extensions', 
     '--disable-gpu', 
@@ -13,7 +13,7 @@ task :new_up_cross_sell_products => :environment do
     '--disable-css'
   ]
 
-  browser = Watir::Browser.new :chrome, options: { args: options }
+  browser = Watir::Browser.new :chrome, options: {args: options}
   raise Exception.new "Browser error" unless browser.present?
   base_url = "https://www.thejewelryvine.com"
   last_page_url = "https://www.thejewelryvine.com/product-category/childrens-jewelry-collections/disney-childrens-jewelry/"
