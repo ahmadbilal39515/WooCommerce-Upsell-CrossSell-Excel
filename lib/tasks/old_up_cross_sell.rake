@@ -3,7 +3,7 @@ require
 
 task :up_cross_sell_products => :environment do
 
-  Selenium::WebDriver::Chrome.driver_path = 'chromedriver-linux64/chromedriver'
+  # Selenium::WebDriver::Chrome.driver_path = 'chromedriver-linux64/chromedriver'
   options = [ '--disable-infobars', '--disable-extensions', '--disable-gpu','--no-sandbox','--disable-dev-shm-usage','--headless', '--disable-blink-features=AutomationControlled', '--disable-images','--disable-css']
 
   browser = Watir::Browser.new :chrome, options: { args: options }
