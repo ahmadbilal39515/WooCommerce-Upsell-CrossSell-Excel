@@ -15,11 +15,7 @@ task :up_cross_sell_products => :environment do
   options.add_argument('--disable-blink-features=AutomationControlled') 
   options.add_argument('--disable-images') 
   options.add_argument('--disable-css')
-
-  # development
-  # chromedriver_path = ENV['CHROMEDRIVER_PATH']
-  # production
-  chromedriver_path = "#{Rails.root}#{ENV['CHROMEDRIVER_PATH']}"
+  chromedriver_path = ENV['CHROMEDRIVER_PATH']
   raise "CHROMEDRIVER_PATH environment variable not set" unless chromedriver_path
   service = Selenium::WebDriver::Service.chrome(path: chromedriver_path)
   browser = Watir::Browser.new :chrome, options: options, service: service
