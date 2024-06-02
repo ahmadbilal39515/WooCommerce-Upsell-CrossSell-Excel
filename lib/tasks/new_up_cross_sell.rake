@@ -1,7 +1,7 @@
 require 'watir'
 require 'webdrivers'
 
-task :up_cross_sell_products => :environment do
+task :new_up_cross_sell_products => :environment do
   options = [
     '--disable-infobars', 
     '--disable-extensions', 
