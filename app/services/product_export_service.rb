@@ -27,6 +27,7 @@ class ProductExportService
     end
   end
 
+
   def self.find_upsells(product, products)
     return [] unless product.sub_category
     category_id = product.sub_category.category&.id
