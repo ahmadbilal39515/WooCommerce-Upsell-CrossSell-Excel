@@ -77,14 +77,14 @@ task :up_cross_sell_products => :environment do
           LastPageUrl.create!(url: last_url_record)
           puts "==================#{last_url_record}================"
           puts "=================================="
-          # store_products(browser_options, sub_category, products)
+          store_products(browser_options, sub_category, products)
           puts "=================================="
           puts "================== page end ============"
           next_url = "#{page}page/#{page_number+1}"
           browser.goto(next_url)
         end
       else
-        # store_products(browser_options, sub_category, products)
+        store_products(browser_options, sub_category, products)
       end
       break if page == last_page_url
     end
