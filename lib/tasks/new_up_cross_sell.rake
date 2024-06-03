@@ -12,7 +12,7 @@ task :up_cross_sell_products => :environment do
       '--disable-gpu',
       '--no-sandbox',
       '--disable-dev-shm-usage',
-      # '--headless',
+      '--headless',
       '--disable-blink-features=AutomationControlled',
       '--disable-images',
       '--disable-css'
