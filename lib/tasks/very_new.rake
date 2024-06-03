@@ -1,7 +1,7 @@
 require 'watir'
 require 'webdrivers/chromedriver'
 
-task :up_cross_sell_products => :environment do
+task :very_new_upsell => :environment do
   chrome_bin_path = ENV['GOOGLE_CHROME_BIN'] || '/app/.apt/usr/bin/google-chrome'
 
   browser_options = {
@@ -25,7 +25,6 @@ task :up_cross_sell_products => :environment do
   base_url = "https://www.thejewelryvine.com"
   last_page_url = "https://www.thejewelryvine.com/product-category/childrens-jewelry-collections/disney-childrens-jewelry/"
   last_url_record = ""
-  pages_array = []
   cleaned_last_url = ""
   sub_category = ""
   attempts = 0
@@ -45,43 +44,7 @@ task :up_cross_sell_products => :environment do
     category_pages = pages[start_index..-1]
 
     category_pages.each do |page|
-      category_data = page.split('.com')[1].split('/')
-      category = category_data[3] ? Category.find_or_create_by(title: category_data[2]) : SubCategory.find_or_create_by(title: category_data[2])
-      sub_category = category_data[3] ? category.sub_categories.find_or_create_by(title: category_data[3]) : category
-
-      last_page_number = 1
-      if LastPageUrl.any?
-        last_url = LastPageUrl.last&.url
-        last_page_number = last_url.split('page/').second.to_i if last_url&.include?('/page/')
-        browser.goto last_url || page
-        LastPageUrl.delete_all
-      else
-        browser.goto page
-      end
-
-      products_pagination = browser.element(xpath: "/html/body/div[2]/main/div/div[1]/div/nav/ul")
-      products = browser.elements(xpath: "//*[contains(@class, 'name') and contains(@class, 'product-title') and contains(@class, 'woocommerce-loop-product__title')]")
-
-      if products_pagination.lis.present?
-        second_last_li = products_pagination.lis[-2]
-        a_tag = second_last_li.a
-        products_page_count = a_tag.text.to_i + 1
-        (last_page_number...products_page_count).each do |page_number|
-          last_url_record = "#{page}page/#{page_number}"
-          LastPageUrl.create!(url: last_url_record)
-          puts "==================#{last_url_record}================"
-          puts "=================================="
-          store_products(browser_options, sub_category, products)
-          puts "=================================="
-          puts "================== page end ============"
-          next_url = "#{page}page/#{page_number + 1}"
-          browser.goto(next_url)
-          GC.start  # Trigger garbage collection
-        end
-      else
-        store_products(browser_options, sub_category, products)
-        GC.start  # Trigger garbage collection
-      end
+      process_category_page(page, browser, last_page_url, cleaned_last_url, browser_options)
       break if page == last_page_url
     end
 
@@ -95,6 +58,49 @@ task :up_cross_sell_products => :environment do
     browser.close
   end
   puts "=============script end==================="
+end
+
+def process_category_page(page, browser, last_page_url, cleaned_last_url, browser_options)
+  category_data = page.split('.com')[1].split('/')
+  category = category_data[3] ? Category.find_or_create_by(title: category_data[2]) : SubCategory.find_or_create_by(title: category_data[2])
+  sub_category = category_data[3] ? category.sub_categories.find_or_create_by(title: category_data[3]) : category
+
+  last_page_number = 1
+  if LastPageUrl.any?
+    last_url = LastPageUrl.last&.url
+    last_page_number = last_url.split('page/').second.to_i if last_url&.include?('/page/')
+    browser.goto last_url || page
+    LastPageUrl.delete_all
+  else
+    browser.goto page
+  end
+
+  products_pagination = browser.element(xpath: "/html/body/div[2]/main/div/div[1]/div/nav/ul")
+  products = browser.elements(xpath: "//*[contains(@class, 'name') and contains(@class, 'product-title') and contains(@class, 'woocommerce-loop-product__title')]")
+
+  if products_pagination.lis.present?
+    second_last_li = products_pagination.lis[-2]
+    a_tag = second_last_li.a
+    products_page_count = a_tag.text.to_i + 1
+    (last_page_number...products_page_count).each do |page_number|
+      process_product_page(page, page_number, browser, sub_category, products, browser_options)
+      next_url = "#{page}page/#{page_number + 1}"
+      browser.goto(next_url)
+      GC.start  # Trigger garbage collection
+    end
+  else
+    process_product_page(page, 1, browser, sub_category, products, browser_options)
+    GC.start  # Trigger garbage collection
+  end
+end
+
+def process_product_page(page, page_number, browser, sub_category, products, browser_options)
+  last_url_record = "#{page}page/#{page_number}"
+  LastPageUrl.create!(url: last_url_record)
+  puts "==================#{last_url_record}================"
+  store_products(browser_options, sub_category, products)
+  puts "=================================="
+  puts "================== page end ============"
 end
 
 def store_products(options, sub_category, products)
