@@ -34,6 +34,7 @@ class ProductsController < ApplicationController
 
     Sidekiq.redis do |conn|
       file_path = conn.get("csv_download_#{job_id}")
+      Rails.logger.info("status done with #{file_path}")
       if file_path
         render json: { ready: true, download_link: download_url(File.basename(file_path), host: request.host) }
       else
