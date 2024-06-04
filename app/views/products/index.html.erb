@@ -3,6 +3,17 @@
   <%= render 'get_up_cross_modal'%>
 </div>
 
+<div id="waitLink" style="display: none;" class="max-w-xl mx-auto overflow-hidden">
+  <div class="bg-pink-100 rounded-xl shadow-xl p-12">
+    <div class="text-center">
+      <svg class="w-20 h-20 mx-auto mb-8 text-pink-500 animate-bounce">
+        <use xlink:href="#download-icon"></use>
+      </svg>
+      <p class="text-lg text-gray-800 mb-8 font-semibold">Your CSV will be ready to download please wait a while!</p>
+    </div>
+  </div>
+</div>
+
 <div id="downloadLink" style="display: none;" class="max-w-xl mx-auto overflow-hidden">
   <div class="bg-pink-100 rounded-xl shadow-xl p-12">
     <div class="text-center">

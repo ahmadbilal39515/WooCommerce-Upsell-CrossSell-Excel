@@ -42,7 +42,7 @@ export default class extends Controller {
   }
 
   checkJobStatus(jobId) {
-
+    document.getElementById('waitLink').style.display = 'block';
     const intervalId = setInterval(() => {
       fetch(`/csv_status/${jobId}`, {
         method: 'GET',
@@ -54,11 +54,12 @@ export default class extends Controller {
       .then(data => {
         if (data.ready) {
           clearInterval(intervalId);
+          document.getElementById('waitLink').style.display = 'none';
           document.getElementById('downloadLink').style.display = 'block';
           document.getElementById('csvLink').setAttribute('href', data.download_link);
         }
       })
       .catch(error => console.error('Error:', error));
-    }, 2000);
+    }, 60000);
   }
 }
