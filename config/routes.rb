@@ -9,4 +9,7 @@ Rails.application.routes.draw do
   # Defines the root path route ("/")
   root "products#index"
   get "get_csv" => "products#get_csv"
+  get 'products/:filename', to: 'products#show', as: :download
+  get 'csv_status/:job_id', to: 'products#csv_status'
+
 end

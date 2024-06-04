@@ -3,17 +3,43 @@ class ProductsController < ApplicationController
 
   def index
   end
-   
+
+  def show
+    filename = params[:filename]
+    if filename.present?
+      file_path = Rails.root.join('tmp', "#{filename}.csv")
+
+      if File.exist?(file_path)
+        send_file file_path, type: 'text/csv', disposition: 'attachment'
+      else
+        render plain: 'File not found', status: :not_found
+      end
+    else
+      flash[:error] = 'Filename parameter is missing'
+      redirect_to root_path
+    end
+  end
+
   def get_csv
-    start_date = params[:startDate].to_date.beginning_of_day
-    end_date = params[:endDate].to_date.end_of_day
-    products = Product.includes(sub_category: :category).where(created_at: start_date..end_date)
-    csv_data = ProductExportService.to_csv(products)
-    filename = "products_list_#{params[:startDate].to_s}_#{params[:endDate].to_s}.csv"
-    respond_to do |format|
-      format.csv do
-        send_data csv_data, filename: filename, disposition: 'attachment'
+    start_date = params[:startDate]
+    end_date = params[:endDate]
+
+    job_id = CsvExportWorker.perform_async(start_date, end_date)
+    
+    render json: { job_id: job_id, message: 'Your CSV is being generated. Please check back in a moment.' }
+  end
+
+  def csv_status
+    job_id = params[:job_id]
+
+    Sidekiq.redis do |conn|
+      file_path = conn.get("csv_download_#{job_id}")
+      if file_path
+        render json: { ready: true, download_link: download_url(File.basename(file_path), host: request.host) }
+      else
+        render json: { ready: false }
       end
     end
   end
+  
 end

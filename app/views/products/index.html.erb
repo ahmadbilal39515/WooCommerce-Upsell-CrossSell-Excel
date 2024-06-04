@@ -1,4 +1,16 @@
 <div data-controller="products">
   <%= render 'shared/nav_bar' %>
-  <%= render 'get_up_cross_modal' %>
+  <%= render 'get_up_cross_modal'%>
+</div>
+
+<div id="downloadLink" style="display: none;" class="max-w-xl mx-auto overflow-hidden">
+  <div class="bg-pink-100 rounded-xl shadow-xl p-12">
+    <div class="text-center">
+      <svg class="w-20 h-20 mx-auto mb-8 text-pink-500 animate-bounce">
+        <use xlink:href="#download-icon"></use>
+      </svg>
+      <p class="text-lg text-gray-800 mb-8 font-semibold">Your CSV is ready to download!</p>
+      <a id="csvLink" href="#" class="font-semibold text-pink-700 hover:underline">Download Now</a>
+    </div>
+  </div>
 </div>

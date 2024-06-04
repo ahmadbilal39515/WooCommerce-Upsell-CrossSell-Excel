@@ -1,6 +1,8 @@
-
 class ProductExportService
   def self.to_csv(products)
+    upsells_map = precompute_upsells(products)
+    cross_sells_map = precompute_cross_sells(products)
+
     CSV.generate(headers: true) do |csv|
       csv << ["Product Title", "Product SKU", "Product Price", 
               "UpSell_1 Product Title", "UpSell_1 Product SKU", "UpSell_1 Product Price",
@@ -10,9 +12,9 @@ class ProductExportService
               "CrossSell_2 Product Title", "CrossSell_2 Product SKU", "CrossSell_2 Product Price",
               "CrossSell_3 Product Title", "CrossSell_3 Product SKU", "CrossSell_3 Product Price"]
 
-      products.each do |product|
-        upsells = find_upsells(product, products)
-        cross_sells = find_cross_sells(product, products)
+      products.find_each(batch_size: 1000) do |product|
+        upsells = upsells_map[product.id] || []
+        cross_sells = cross_sells_map[product.id] || []
 
         csv << [
           product.title, product.sku, product.price,
@@ -27,44 +29,35 @@ class ProductExportService
     end
   end
 
-
-  def self.find_upsells(product, products)
-    return [] unless product.sub_category
-    category_id = product.sub_category.category&.id
-  
-    if category_id
-      filtered_products = products.select do |p|
-        p.sub_category.category_id == category_id &&
-        p.sub_category_id == product.sub_category_id &&
-        p.id != product.id
-      end
-    else
-      filtered_products = products.select do |p|
-        p.sub_category_id == product.sub_category_id &&
-        p.id != product.id
+  def self.precompute_upsells(products)
+    upsells_map = Hash.new { |hash, key| hash[key] = [] }
+    
+    products.group_by { |p| p.sub_category_id }.each do |sub_category_id, grouped_products|
+      grouped_products.combination(2).each do |product1, product2|
+        next if product1.id == product2.id
+        upsells_map[product1.id] << product2 if product1.sub_category_id == product2.sub_category_id
+        upsells_map[product2.id] << product1 if product1.sub_category_id == product2.sub_category_id
       end
     end
-  
-    filtered_products.sample(3)
+
+    upsells_map.each { |key, value| upsells_map[key] = value.sample(3) }
+    upsells_map
   end
 
-  def self.find_cross_sells(product, products)
-    return [] unless product.sub_category
-    category_id = product.sub_category.category&.id
-  
-    if category_id
-      filtered_products = products.select do |p|
-        p.sub_category.category_id != category_id &&
-        p.sub_category_id != product.sub_category_id &&
-        p.id != product.id
-      end
-    else
-      filtered_products = products.select do |p|
-        p.sub_category_id != product.sub_category_id &&
-        p.id != product.id
+  def self.precompute_cross_sells(products)
+    cross_sells_map = Hash.new { |hash, key| hash[key] = [] }
+
+    products.group_by { |p| p.sub_category.category_id }.each do |category_id, grouped_products|
+      grouped_products.combination(2).each do |product1, product2|
+        next if product1.id == product2.id
+        unless product1.sub_category.category_id == product2.sub_category.category_id
+          cross_sells_map[product1.id] << product2
+          cross_sells_map[product2.id] << product1
+        end
       end
     end
-  
-    filtered_products.sample(3)
+
+    cross_sells_map.each { |key, value| cross_sells_map[key] = value.sample(3) }
+    cross_sells_map
   end
 end
