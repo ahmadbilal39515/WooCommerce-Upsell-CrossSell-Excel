@@ -11,21 +11,21 @@ class ProductExportService
               "CrossSell_1 Product Title", "CrossSell_1 Product SKU", "CrossSell_1 Product Price",
               "CrossSell_2 Product Title", "CrossSell_2 Product SKU", "CrossSell_2 Product Price",
               "CrossSell_3 Product Title", "CrossSell_3 Product SKU", "CrossSell_3 Product Price"]
-
-      products.find_each(batch_size: 1000) do |product|
-        upsells = upsells_map[product.id] || []
-        cross_sells = cross_sells_map[product.id] || []
-
-        csv << [
-          product.title, product.sku, product.price,
-          upsells[0]&.title, upsells[0]&.sku, upsells[0]&.price,
-          upsells[1]&.title, upsells[1]&.sku, upsells[1]&.price,
-          upsells[2]&.title, upsells[2]&.sku, upsells[2]&.price,
-          cross_sells[0]&.title, cross_sells[0]&.sku, cross_sells[0]&.price,
-          cross_sells[1]&.title, cross_sells[1]&.sku, cross_sells[1]&.price,
-          cross_sells[2]&.title, cross_sells[2]&.sku, cross_sells[2]&.price
-        ]
-      end
+        random_products = products.order("RANDOM()").limit(500)
+        random_products.limit(1000).each do |product|
+          upsells = upsells_map[product.id] || []
+          cross_sells = cross_sells_map[product.id] || []
+  
+          csv << [
+            product.title, product.sku, product.price,
+            upsells[0]&.title, upsells[0]&.sku, upsells[0]&.price,
+            upsells[1]&.title, upsells[1]&.sku, upsells[1]&.price,
+            upsells[2]&.title, upsells[2]&.sku, upsells[2]&.price,
+            cross_sells[0]&.title, cross_sells[0]&.sku, cross_sells[0]&.price,
+            cross_sells[1]&.title, cross_sells[1]&.sku, cross_sells[1]&.price,
+            cross_sells[2]&.title, cross_sells[2]&.sku, cross_sells[2]&.price
+          ]
+        end
     end
   end
 
