@@ -109,11 +109,12 @@ def store_products(options, sub_category, products)
     
     product_sku = browser.element(xpath: "//span[contains(@class, 'sku_wrapper')]").span.text
     product_title = browser.element(xpath: "//h1[contains(@class, 'product-title') and contains(@class, 'product_title') and contains(@class, 'entry-title')]").text
-
     if browser.input(xpath: "//input[@type='hidden' and contains(@class, 'product-options-product-price')]").present?    
       product_price = browser.input(xpath: "//input[@type='hidden' and contains(@class, 'product-options-product-price')]").value
-    else
+    elsif browser.element(xpath: "/html/body/div[2]/main/div/div[2]/div[1]/div/div/div[2]/div[3]/p/span/bdi").present?
       product_price = browser.element(xpath: "/html/body/div[2]/main/div/div[2]/div[1]/div/div/div[2]/div[3]/p/span/bdi").text
+    else
+      product_price = browser.element(xpath: "/html/body/div[2]/main/div/div[4]").attributes[:data_yotpo_price]
     end
     product = sub_category.products.find_or_initialize_by(sku: product_sku)
     product.assign_attributes(title: product_title, price: product_price, product_url: product_url)
