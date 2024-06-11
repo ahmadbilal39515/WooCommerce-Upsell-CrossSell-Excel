@@ -122,5 +122,5 @@ def store_products(options, sub_category, products)
     puts " =================#{product_title}==========#{product_price}=============#{product_sku}"
     GC.start
   end
-  browser_4.close
+  browser.close
 end
