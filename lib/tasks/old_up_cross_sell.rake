@@ -28,7 +28,6 @@ task :old_up_cross_sell_products => :environment do
   cleaned_last_url = ""
   sub_category = ""
   attempts = 0
-  debugger
 
   begin
     if LastPageUrl.any?
