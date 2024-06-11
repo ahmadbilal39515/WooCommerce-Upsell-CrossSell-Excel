@@ -28,6 +28,7 @@ task :old_up_cross_sell_products => :environment do
   cleaned_last_url = ""
   sub_category = ""
   attempts = 0
+  debugger
 
   begin
     if LastPageUrl.any?
@@ -87,11 +88,11 @@ def process_category_page(page, browser, last_page_url, cleaned_last_url, browse
       process_product_page(page, page_number, browser, sub_category, browser_options)
       next_url = "#{page}page/#{page_number + 1}"
       browser.goto(next_url)
-      GC.start  # Trigger garbage collection
+      GC.start
     end
   else
     process_product_page(page, 1, browser, sub_category, browser_options)
-    GC.start  # Trigger garbage collection
+    GC.start
   end
 end
 
@@ -109,18 +110,17 @@ def store_products(browser, sub_category)
 
   products.each do |product|
     product_url = product.a.href
-    existing_product = sub_category.products.find_by(product_url: product_url)
-    next if existing_product
-
     browser.goto product_url
     next unless browser.element(xpath: "//h1[contains(@class, 'product-title') and contains(@class, 'product_title') and contains(@class, 'entry-title')]").present?
-
+    
     product_sku = browser.element(xpath: "//span[contains(@class, 'sku_wrapper')]").span.text
     product_title = browser.element(xpath: "//h1[contains(@class, 'product-title') and contains(@class, 'product_title') and contains(@class, 'entry-title')]").text
     product_price = browser.input(xpath: "//input[@type='hidden' and contains(@class, 'product-options-product-price')]").value
-
-    sub_category.products.create(title: product_title, price: product_price, sku: product_sku, product_url: product_url)
+    
+    product = sub_category.products.find_or_initialize_by(sku: product_sku)
+    product.assign_attributes(title: product_title, price: product_price, product_url: product_url)
+    product.save
     puts " =================#{product_title}==========#{product_price}=============#{product_sku}"
-    GC.start  # Trigger garbage collection
+    GC.start
   end
 end
