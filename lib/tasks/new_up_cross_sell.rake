@@ -80,6 +80,8 @@ task :up_cross_sell_products => :environment do
         end
       end
       if !products_pagination.lis.present?
+        last_url_record = page
+        LastPageUrl.create!(url: last_url_record)
         store_products(browser_options, sub_category, products)
         GC.start
       end
