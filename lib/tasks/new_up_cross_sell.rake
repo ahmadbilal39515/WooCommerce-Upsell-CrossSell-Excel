@@ -76,11 +76,12 @@ task :up_cross_sell_products => :environment do
           puts "================== page end ============"
           next_url = "#{page}page/#{page_number + 1}"
           browser.goto(next_url)
-          GC.start  # Trigger garbage collection
+          GC.start
         end
-      else
+      end
+      if !products_pagination.lis.present?
         store_products(browser_options, sub_category, products)
-        GC.start  # Trigger garbage collection
+        GC.start
       end
       break if page == last_page_url
     end
