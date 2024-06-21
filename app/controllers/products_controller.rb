@@ -6,7 +6,6 @@ class ProductsController < ApplicationController
   end
    
   def get_csv
-    debugger
     start_index = params[:startIndex].to_i
     end_index = params[:endIndex].to_i
     products = Product.includes(sub_category: :category)
