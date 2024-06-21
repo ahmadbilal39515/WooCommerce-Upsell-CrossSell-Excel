@@ -8,8 +8,17 @@ class ProductsController < ApplicationController
   def get_csv
     start_index = params[:startIndex].to_i
     end_index = params[:endIndex].to_i
+    fetch_size = 5000
+    excluded_products = Product.includes(sub_category: :category)
+    .offset(start_index)
+    .limit(end_index - start_index + 1)
+
+    excluded_ids = excluded_products.pluck(:id)
     products = Product.includes(sub_category: :category)
-    csv_data = ProductExportService.to_csv(products, start_index, end_index)
+                      .where.not(id: excluded_ids)
+                      .order(Arel.sql('RANDOM()'))
+                      .limit(fetch_size)
+    csv_data = ProductExportService.to_csv(excluded_products, products, start_index, end_index)
     filename = "products_list_#{params[:startIndex].to_s}_#{params[:endIndex].to_s}.csv"
     respond_to do |format|
       format.json do
