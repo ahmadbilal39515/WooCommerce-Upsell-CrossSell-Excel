@@ -6,14 +6,15 @@ class ProductsController < ApplicationController
   end
    
   def get_csv
-    start_index = params[:start].to_i
-    end_index = params[:end].to_i
+    debugger
+    start_index = params[:startIndex].to_i
+    end_index = params[:endIndex].to_i
     products = Product.includes(sub_category: :category)
     csv_data = ProductExportService.to_csv(products, start_index, end_index)
-    filename = "products_list_#{params[:start].to_s}_#{params[:end].to_s}.csv"
+    filename = "products_list_#{params[:startIndex].to_s}_#{params[:endIndex].to_s}.csv"
     respond_to do |format|
-      format.csv do
-        send_data csv_data, filename: filename, disposition: 'attachment'
+      format.json do
+        render json: { csv_data: csv_data, filename: filename }
       end
     end
   end
