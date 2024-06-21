@@ -22,12 +22,12 @@
       <div class="p-4 md:p-5">
         <%= form_with(url: get_csv_path(format: :csv), method: :get) do |f| %>
           <div>
-            <label for="startDate" class="block mb-2 mt-4 text-sm font-medium text-gray-900 dark:text-white">Start Date</label>
-            <%= f.date_field :startDate, class: "bg-gray-50 border border-gray-300 text-gray-900 text-sm focus:ring-blue-500 focus:border-blue-500 block w-full p-2.5 dark:bg-gray-600 dark:border-gray-500 dark:placeholder-gray-400 dark:text-white", data: { products_target: "startDate" }, required: true %>
+            <label for="startDate" class="block mb-2 mt-4 text-sm font-medium text-gray-900 dark:text-white">Start Rnage</label>
+            <%= f.text_field :start, class: "bg-gray-50 border border-gray-300 text-gray-900 text-sm focus:ring-blue-500 focus:border-blue-500 block w-full p-2.5 dark:bg-gray-600 dark:border-gray-500 dark:placeholder-gray-400 dark:text-white", data: { products_target: "startIndex" }, required: true %>
           </div>
           <div>
-            <label for="endDate" class="block mb-2 mt-4 text-sm font-medium text-gray-900 dark:text-white">End Date</label>
-            <%= f.date_field :endDate, class: "bg-gray-50 border border-gray-300 text-gray-900 text-sm focus:ring-blue-500 focus:border-blue-500 block w-full p-2.5 dark:bg-gray-600 dark:border-gray-500 dark:placeholder-gray-400 dark:text-white", data: { products_target: "endDate" }, required: true %>
+            <label for="endDate" class="block mb-2 mt-4 text-sm font-medium text-gray-900 dark:text-white">End Range</label>
+            <%= f.text_field :end, class: "bg-gray-50 border border-gray-300 text-gray-900 text-sm focus:ring-blue-500 focus:border-blue-500 block w-full p-2.5 dark:bg-gray-600 dark:border-gray-500 dark:placeholder-gray-400 dark:text-white", data: { products_target: "endIndex" }, required: true %>
           </div>
           <div class="mb-4 mt-4">
             <button  type="submit" class="w-full text-white bg-pink-500 font-medium text-sm px-5 py-3 text-center dark:bg-pink-600 hover:bg-pink-600 hover:text-white">

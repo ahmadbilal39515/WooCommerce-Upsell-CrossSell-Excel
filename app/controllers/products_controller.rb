@@ -2,14 +2,15 @@ class ProductsController < ApplicationController
   http_basic_authenticate_with :name => ENV['name'], password: ENV['password'], only: :index
 
   def index
+    @products = Product.count
   end
    
   def get_csv
-    start_date = params[:startDate].to_date.beginning_of_day
-    end_date = params[:endDate].to_date.end_of_day
-    products = Product.includes(sub_category: :category).where(created_at: start_date..end_date)
-    csv_data = ProductExportService.to_csv(products)
-    filename = "products_list_#{params[:startDate].to_s}_#{params[:endDate].to_s}.csv"
+    start_index = params[:start].to_i
+    end_index = params[:end].to_i
+    products = Product.includes(sub_category: :category)
+    csv_data = ProductExportService.to_csv(products, start_index, end_index)
+    filename = "products_list_#{params[:start].to_s}_#{params[:end].to_s}.csv"
     respond_to do |format|
       format.csv do
         send_data csv_data, filename: filename, disposition: 'attachment'

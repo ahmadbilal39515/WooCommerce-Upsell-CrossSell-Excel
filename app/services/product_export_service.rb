@@ -1,5 +1,6 @@
 class ProductExportService
-  def self.to_csv(products)
+  def self.to_csv(products, start_index, end_index)
+    limit = end_index - start_index
     CSV.generate(headers: true) do |csv|
       csv << ["Product Title", "Product SKU", "Product Price", 
               "UpSell_1 Product Title", "UpSell_1 Product SKU", "UpSell_1 Product Price",
@@ -8,7 +9,7 @@ class ProductExportService
               "CrossSell_1 Product Title", "CrossSell_1 Product SKU", "CrossSell_1 Product Price",
               "CrossSell_2 Product Title", "CrossSell_2 Product SKU", "CrossSell_2 Product Price",
               "CrossSell_3 Product Title", "CrossSell_3 Product SKU", "CrossSell_3 Product Price"]
-      products.limit(1000).each do |product|
+      products.offset(start_index).limit(limit).each do |product|
         upsells = find_upsells(product, products)
         cross_sells = find_cross_sells(product, products)
 

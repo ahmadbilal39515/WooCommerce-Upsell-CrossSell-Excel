@@ -2,7 +2,7 @@ import { Controller } from "@hotwired/stimulus"
 
 // Connects to data-controller="products"
 export default class extends Controller {
-  static targets = ["main_modal", "spinner"]
+  static targets = ["main_modal", "spinner", "startIndex", "endIndex"]
 
   connect() {
     this.modal = new Modal(this.main_modalTarget)
@@ -15,4 +15,6 @@ export default class extends Controller {
   closeModal(){
     this.modal.toggle()
   }
+
+  
 }
