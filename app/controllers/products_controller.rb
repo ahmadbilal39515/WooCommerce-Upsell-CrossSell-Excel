@@ -3,9 +3,6 @@ class ProductsController < ApplicationController
 
   def index
     @products = Product.count
-    debugger
-    duplicate_products = @products.group_by(&:sku).select { |sku, products| products.size > 1 }
-
   end
    
   def get_csv
