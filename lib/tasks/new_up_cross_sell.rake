@@ -109,22 +109,39 @@ def store_products(options, sub_category, products)
     product_price = 0
     product_url = product.a.href
     browser.goto product_url
+  
     next unless browser.element(xpath: "//h1[contains(@class, 'product-title') and contains(@class, 'product_title') and contains(@class, 'entry-title')]").present?
-    
-    product_sku = browser.element(xpath: "//span[contains(@class, 'sku_wrapper')]").span.text
-    product_title = browser.element(xpath: "//h1[contains(@class, 'product-title') and contains(@class, 'product_title') and contains(@class, 'entry-title')]").text
-    if browser.input(xpath: "//input[@type='hidden' and contains(@class, 'product-options-product-price')]").present?    
-      product_price = browser.input(xpath: "//input[@type='hidden' and contains(@class, 'product-options-product-price')]").value
+  
+    product_sku = browser.element(xpath: "//span[contains(@class, 'sku_wrapper')]").span.text.strip.upcase
+    product_title = browser.element(xpath: "//h1[contains(@class, 'product-title') and contains(@class, 'product_title') and contains(@class, 'entry-title')]").text.strip
+  
+    if browser.input(xpath: "//input[@type='hidden' and contains(@class, 'product-options-product-price')]").present?
+      product_price = browser.input(xpath: "//input[@type='hidden' and contains(@class, 'product-options-product-price')]").value.strip
     elsif browser.element(xpath: "/html/body/div[2]/main/div/div[2]/div[1]/div/div/div[2]/div[3]/p/span/bdi").present?
-      product_price = browser.element(xpath: "/html/body/div[2]/main/div/div[2]/div[1]/div/div/div[2]/div[3]/p/span/bdi").text
+      product_price = browser.element(xpath: "/html/body/div[2]/main/div/div[2]/div[1]/div/div/div[2]/div[3]/p/span/bdi").text.strip
     else
-      product_price = browser.element(xpath: "/html/body/div[2]/main/div/div[4]").attributes[:data_yotpo_price]
+      product_price = browser.element(xpath: "/html/body/div[2]/main/div/div[4]").attributes[:data_yotpo_price].strip
     end
+  
+    # Find or initialize product by SKU
     product = sub_category.products.find_or_initialize_by(sku: product_sku)
-    product.assign_attributes(title: product_title, price: product_price, product_url: product_url)
-    product.save
+  
+    # Assign new attributes
+    product.assign_attributes(
+      title: product_title,
+      price: product_price,
+      product_url: product_url
+    )
+  
+    # Save the product to the database
+    product.save!
+  
     puts " =================#{product_title}==========#{product_price}=============#{product_sku}"
+  
+    # Garbage collection
     GC.start
   end
+  
+  
   browser.close
 end
