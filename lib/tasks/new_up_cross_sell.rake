@@ -119,8 +119,10 @@ def store_products(options, sub_category, products)
       product_price = browser.input(xpath: "//input[@type='hidden' and contains(@class, 'product-options-product-price')]").value.strip
     elsif browser.element(xpath: "/html/body/div[2]/main/div/div[2]/div[1]/div/div/div[2]/div[3]/p/span/bdi").present?
       product_price = browser.element(xpath: "/html/body/div[2]/main/div/div[2]/div[1]/div/div/div[2]/div[3]/p/span/bdi").text.strip
-    else
+    elsif browser.element(xpath: "/html/body/div[2]/main/div/div[4]").attributes[:data_yotpo_price].present?
       product_price = browser.element(xpath: "/html/body/div[2]/main/div/div[4]").attributes[:data_yotpo_price].strip
+    else
+      product_price = 0
     end
 
     # Find or initialize product by SKU
